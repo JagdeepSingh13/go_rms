@@ -24,7 +24,7 @@ func GetOrders() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
-		result, err := orderCollection.Find(ctx, bson.M{})
+		result, err := orderCollection.Find(context.TODO(), bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while listing orders"})
 		}
@@ -45,7 +45,7 @@ func GetOrder() gin.HandlerFunc {
 		orderId := c.Param("order_id")
 		var order models.Order
 
-		err := foodCollection.FindOne(ctx, bson.M{"order_id": orderId}).Decode(&order)
+		err := orderCollection.FindOne(ctx, bson.M{"order_id": orderId}).Decode(&order)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching the order item"})
 		}
