@@ -70,24 +70,24 @@ func ItemsByOrder(id string) (OrderItems []primitive.M, err error) {
 	lookupTableStage := bson.D{{"$lookup", bson.D{{"from", "table"}, {"localField", "order.Table_id"}, {"foreignField", "table_id"}, {"as", "table"}}}}
 	unwindTableStage := bson.D{{"$unwind", bson.D{{"path", "$table"}, {"preserveNullAndEmptyArrays", true}}}}
 
-	projectStage:= bson.D{{
-			"$project", bson.D{
-				{"id", 0},
-				{"amount", "$food.price"},
-				{"total_count", 1},
-				{"food_name", "$food.name"},
-				{"food_image", "$food.image"},
-				{"table_number", "$table.table_number"},
-				{"table_id", "$table.table_id"},
-				{"order_id", "$order.order_id"},
-				{"price", "$food.price"},
-				{"quantity", 1},
-			}},
+	projectStage := bson.D{{
+		"$project", bson.D{
+			{"id", 0},
+			{"amount", "$food.price"},
+			{"total_count", 1},
+			{"food_name", "$food.name"},
+			{"food_image", "$food.image"},
+			{"table_number", "$table.table_number"},
+			{"table_id", "$table.table_id"},
+			{"order_id", "$order.order_id"},
+			{"price", "$food.price"},
+			{"quantity", 1},
+		}},
 	}
 
-	groupStage:= bson.D{{"$group", bson.D{{"_id",bson.D{{"order_id", "$order_id"}. {"table_id", "$table_id"}, {"table_number", "$table_number"}}}, {"payment_due", bson.D{{"$sum", "$amount"}}}, {"total_count", bson.D{{"$sum", 1}}}, {"order_items", bson.D{{"$push", "$$ROOT"}}}}}}
+	groupStage := bson.D{{"$group", bson.D{{"_id", bson.D{{"order_id", "$order_id"}, {"table_id", "$table_id"}, {"table_number", "$table_number"}}}, {"payment_due", bson.D{{"$sum", "$amount"}}}, {"total_count", bson.D{{"$sum", 1}}}, {"order_items", bson.D{{"$push", "$$ROOT"}}}}}}
 
-	projectStage2:= bson.D{
+	projectStage2 := bson.D{
 		{"$project", bson.D{
 			{"id", 0},
 			{"payment_due", 1},
@@ -96,15 +96,14 @@ func ItemsByOrder(id string) (OrderItems []primitive.M, err error) {
 			{"order_items", 1},
 		}}}
 
-		result, err:= orderItemCollection.Aggregate(ctx, mongo.Pipeline{
-			matchStage, lookupStage, unwindStage, lookupOrderStage, unwindOrderStage, lookupTableStage, unwindTableStage, projectStage, groupStage, projectStage2
-		})
+	result, err := orderItemCollection.Aggregate(ctx, mongo.Pipeline{
+		matchStage, lookupStage, unwindStage, lookupOrderStage, unwindOrderStage, lookupTableStage, unwindTableStage, projectStage, groupStage, projectStage2})
 
-		if err!= nil {
-			panic(err)
-		}
+	if err != nil {
+		panic(err)
+	}
 
-		if err = result.All(ctx, &OrderItems); err != nil {
+	if err = result.All(ctx, &OrderItems); err != nil {
 		panic(err)
 	}
 
